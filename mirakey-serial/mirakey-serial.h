@@ -1,10 +1,18 @@
-// mirakey serial protocol by Francisco Garccia-Gonzalez
-// #include spi
+/* Mirakey Serial Protocol
+by Francisco Garccia-Gonzalez
+University of Waterloo Undergraduate Mechatronics Engineering - W2022
+MTE482 Fourth Year Design Project: Mirakey
+
+*/
 
 namespace mirakey_serial {
 
-void select(uint8_t slave_address);
-void command(uint8_t command);
-void data(uint8_t data);
+/* Protocol Interface */
+void MKS_Init();
+void MKS_Select(uint8_t SlaveAddress);
+void MKS_TxCommand(uint8_t command);
+void MKS_TxData(uint8_t * pData, uint16_t Size);
 
+/* Helper Methods */
+static void MKS_GPIO_Init(void);
 }
