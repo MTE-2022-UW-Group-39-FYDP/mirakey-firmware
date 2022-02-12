@@ -6,11 +6,12 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #define FONT_ROW_TO_BYTE(s) ((s[0]=='*')<<7 | (s[1]=='*')<<6 | (s[2]=='*')<<5 | (s[3]=='*')<<4 | \
                 (s[4]=='*')<<3 | (s[5]=='*')<<2 | (s[6]=='*')<<1 | (s[7]=='*')<<0)
 
-static const unsigned char map[73][8] = {
+static const unsigned char map[128][8] = {
         {},
         {},
         {},
@@ -119,43 +120,493 @@ static const unsigned char map[73][8] = {
         {
             FONT_ROW_TO_BYTE("********"),
             FONT_ROW_TO_BYTE(" *     *"),
-            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *      "),
             FONT_ROW_TO_BYTE(" ***    "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE("********")
+        },
+        {
+            FONT_ROW_TO_BYTE("********"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *  *   "),
+            FONT_ROW_TO_BYTE(" ****   "),
+            FONT_ROW_TO_BYTE(" *  *   "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE("***     ")
+        },
+        {
+            FONT_ROW_TO_BYTE("  ******"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE("*       "),
+            FONT_ROW_TO_BYTE("*  *****"),
+            FONT_ROW_TO_BYTE("*  *   *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE("  ***** ")
+        },
+        {
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("***  ***")
+        },
+        {
+            FONT_ROW_TO_BYTE("******* "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("******* ")
+        },
+        {
+            FONT_ROW_TO_BYTE("  ******"),
+            FONT_ROW_TO_BYTE("     *  "),
+            FONT_ROW_TO_BYTE("     *  "),
+            FONT_ROW_TO_BYTE("     *  "),
+            FONT_ROW_TO_BYTE("**   *  "),
+            FONT_ROW_TO_BYTE("*    *  "),
+            FONT_ROW_TO_BYTE("*    *  "),
+            FONT_ROW_TO_BYTE(" ****   ")
+        },
+        {
+            FONT_ROW_TO_BYTE("*** ****"),
+            FONT_ROW_TO_BYTE(" *   *  "),
+            FONT_ROW_TO_BYTE(" *  *   "),
+            FONT_ROW_TO_BYTE(" ***    "),
+            FONT_ROW_TO_BYTE(" *  *   "),
+            FONT_ROW_TO_BYTE(" *   *  "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("***  ***")
+        },
+        {
+            FONT_ROW_TO_BYTE("***     "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE(" *      "),
             FONT_ROW_TO_BYTE(" *      "),
             FONT_ROW_TO_BYTE(" *     *"),
             FONT_ROW_TO_BYTE(" *     *"),
             FONT_ROW_TO_BYTE("********")
         },
         {
-            FONT_ROW_TO_BYTE("   **   "),
-            FONT_ROW_TO_BYTE("  *  *  "),
+            FONT_ROW_TO_BYTE("**   ***"),
+            FONT_ROW_TO_BYTE(" ** * * "),
+            FONT_ROW_TO_BYTE(" * *  * "),
+            FONT_ROW_TO_BYTE(" * *  * "),
             FONT_ROW_TO_BYTE(" *    * "),
-            FONT_ROW_TO_BYTE(" *    * "),
-            FONT_ROW_TO_BYTE(" ****** "),
-            FONT_ROW_TO_BYTE(" *    * "),
-            FONT_ROW_TO_BYTE(" *    * "),
-            FONT_ROW_TO_BYTE("***  ***")
-        },
-        {
-            FONT_ROW_TO_BYTE("   **   "),
-            FONT_ROW_TO_BYTE("  *  *  "),
-            FONT_ROW_TO_BYTE(" *    * "),
-            FONT_ROW_TO_BYTE(" *    * "),
-            FONT_ROW_TO_BYTE(" ****** "),
             FONT_ROW_TO_BYTE(" *    * "),
             FONT_ROW_TO_BYTE(" *    * "),
             FONT_ROW_TO_BYTE("***  ***")
         },
         {
-            FONT_ROW_TO_BYTE("   **   "),
-            FONT_ROW_TO_BYTE("  *  *  "),
-            FONT_ROW_TO_BYTE(" *    * "),
-            FONT_ROW_TO_BYTE(" *    * "),
-            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("**   ***"),
+            FONT_ROW_TO_BYTE(" **   * "),
+            FONT_ROW_TO_BYTE(" * *  * "),
+            FONT_ROW_TO_BYTE(" *  * * "),
+            FONT_ROW_TO_BYTE(" *   ** "),
             FONT_ROW_TO_BYTE(" *    * "),
             FONT_ROW_TO_BYTE(" *    * "),
             FONT_ROW_TO_BYTE("***  ***")
-        }
+        },
+        {
+            FONT_ROW_TO_BYTE("  ****  "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("  ****  ")
+        },
+        {
+            FONT_ROW_TO_BYTE("******* "),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE("***     ")
+        },
+        {
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*  *   *"),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("   *    ")
+        },
+        {
+            FONT_ROW_TO_BYTE("******* "),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE(" *   *  "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("***  ***")
+        },
+        {
+            FONT_ROW_TO_BYTE(" ***** *"),
+            FONT_ROW_TO_BYTE("*     **"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE(" *****  "),
+            FONT_ROW_TO_BYTE("      * "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("**     *"),
+            FONT_ROW_TO_BYTE("* ***** ")
+        },
+        {
+            FONT_ROW_TO_BYTE("******* "),
+            FONT_ROW_TO_BYTE("*  *  * "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("  ***   ")
+        },
+        {
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("  ****  ")
+        },
+        {
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("  *   * "),
+            FONT_ROW_TO_BYTE("  *  *  "),
+            FONT_ROW_TO_BYTE("   * *  "),
+            FONT_ROW_TO_BYTE("    *   ")
+        },
+        {
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" * *  * "),
+            FONT_ROW_TO_BYTE(" * *  * "),
+            FONT_ROW_TO_BYTE(" * *  * "),
+            FONT_ROW_TO_BYTE("  * **  ")
+        },
+        {
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("  *  *  "),
+            FONT_ROW_TO_BYTE("   **   "),
+            FONT_ROW_TO_BYTE("  *  *  "),
+            FONT_ROW_TO_BYTE("  *  *  "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("***  ***")
+        },
+        {
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("  *  *  "),
+            FONT_ROW_TO_BYTE("   * *   "),
+            FONT_ROW_TO_BYTE("    *   "),
+            FONT_ROW_TO_BYTE("    *   "),
+            FONT_ROW_TO_BYTE("    *   "),
+            FONT_ROW_TO_BYTE("   ***  ")
+        },
+        {
+            FONT_ROW_TO_BYTE("********"),
+            FONT_ROW_TO_BYTE("*     * "),
+            FONT_ROW_TO_BYTE("*    *  "),
+            FONT_ROW_TO_BYTE("    *   "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("  *    *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE("********")
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE(" *****  "),
+            FONT_ROW_TO_BYTE("      * "),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("*     * "),
+            FONT_ROW_TO_BYTE("*     * "),
+            FONT_ROW_TO_BYTE(" *******")
+        },{
+            FONT_ROW_TO_BYTE("**      "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE(" * **** "),
+            FONT_ROW_TO_BYTE(" **    *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE("******* ")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*       "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE(" ****** ")
+        },
+        {
+            FONT_ROW_TO_BYTE("       *"),
+            FONT_ROW_TO_BYTE("       *"),
+            FONT_ROW_TO_BYTE(" ***** *"),
+            FONT_ROW_TO_BYTE("*     **"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*     **"),
+            FONT_ROW_TO_BYTE(" ***** *")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("********"),
+            FONT_ROW_TO_BYTE("*       "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE(" ****** ")
+        },
+        {
+            FONT_ROW_TO_BYTE("   **** "),
+            FONT_ROW_TO_BYTE("  *    *"),
+            FONT_ROW_TO_BYTE("  *    *"),
+            FONT_ROW_TO_BYTE(" ****   "),
+            FONT_ROW_TO_BYTE("  *     "),
+            FONT_ROW_TO_BYTE("  *     "),
+            FONT_ROW_TO_BYTE("  *     "),
+            FONT_ROW_TO_BYTE("*****   ")
+        },
+        {
+            FONT_ROW_TO_BYTE("      **"),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("******* "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE(" ****** ")
+        },
+        {
+            FONT_ROW_TO_BYTE("***     "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE(" * ***  "),
+            FONT_ROW_TO_BYTE(" **   * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("***  ***")
+        },
+        {
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("  **    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE(" *****  ")
+        },
+        {
+            FONT_ROW_TO_BYTE("       *"),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("     ***"),
+            FONT_ROW_TO_BYTE("       *"),
+            FONT_ROW_TO_BYTE("       *"),
+            FONT_ROW_TO_BYTE("       *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE(" ****** ")
+        },
+        {
+            FONT_ROW_TO_BYTE("***     "),
+            FONT_ROW_TO_BYTE(" *  *** "),
+            FONT_ROW_TO_BYTE(" *   *  "),
+            FONT_ROW_TO_BYTE(" ****   "),
+            FONT_ROW_TO_BYTE(" *  *   "),
+            FONT_ROW_TO_BYTE(" *   *  "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("***  ***")
+        },
+        {
+            FONT_ROW_TO_BYTE("  **    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("   *    "),
+            FONT_ROW_TO_BYTE("******* ")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("* ** ** "),
+            FONT_ROW_TO_BYTE(" *  *  *"),
+            FONT_ROW_TO_BYTE(" *  *  *"),
+            FONT_ROW_TO_BYTE(" *  *  *"),
+            FONT_ROW_TO_BYTE(" *  *  *"),
+            FONT_ROW_TO_BYTE("** ** **")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("** ***  "),
+            FONT_ROW_TO_BYTE(" **   * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("***  ***")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE(" ****** ")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("******* "),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" *     *"),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE("***     ")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("*     * "),
+            FONT_ROW_TO_BYTE("*     * "),
+            FONT_ROW_TO_BYTE("*     * "),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("      * "),
+            FONT_ROW_TO_BYTE("     ***")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("** ***  "),
+            FONT_ROW_TO_BYTE(" **   * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE(" *      "),
+            FONT_ROW_TO_BYTE("***     ")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("*       "),
+            FONT_ROW_TO_BYTE(" ****** "),
+            FONT_ROW_TO_BYTE("       *"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("******* ")
+        },
+        {
+            FONT_ROW_TO_BYTE("  *     "),
+            FONT_ROW_TO_BYTE("  *     "),
+            FONT_ROW_TO_BYTE("*****   "),
+            FONT_ROW_TO_BYTE("  *     "),
+            FONT_ROW_TO_BYTE("  *     "),
+            FONT_ROW_TO_BYTE("  *     "),
+            FONT_ROW_TO_BYTE("  *   * "),
+            FONT_ROW_TO_BYTE("   ***  ")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("  ****  ")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("  *  * "),
+            FONT_ROW_TO_BYTE("  *  * "),
+            FONT_ROW_TO_BYTE("   * * "),
+            FONT_ROW_TO_BYTE("    *   ")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" * *  * "),
+            FONT_ROW_TO_BYTE(" * *  * "),
+            FONT_ROW_TO_BYTE(" * *  * "),
+            FONT_ROW_TO_BYTE("  * **  ")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE("  *  *  "),
+            FONT_ROW_TO_BYTE("   **   "),
+            FONT_ROW_TO_BYTE("  *  *  "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("***  ***")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("***  ***"),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE(" *    * "),
+            FONT_ROW_TO_BYTE("  ***** "),
+            FONT_ROW_TO_BYTE("*     * "),
+            FONT_ROW_TO_BYTE(" *****  ")
+        },
+        {
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("        "),
+            FONT_ROW_TO_BYTE("********"),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("    *** "),
+            FONT_ROW_TO_BYTE(" ***    "),
+            FONT_ROW_TO_BYTE("*      *"),
+            FONT_ROW_TO_BYTE("********")
+        },
+        {},
+        {},
+        {},
+        {},
+        {}
 };
 
 void render8x8(const char *bitmap) {
@@ -182,6 +633,7 @@ void render32x32(const uint32_t *bitmap) {
 
 uint32_t* upscale8to32(const char *bitmap) {
     static uint32_t result[32];
+    memset(result, 0, sizeof(result));
     int set;
     int count_to_32 = 0;
     int curr_row = 0;
@@ -208,16 +660,15 @@ uint32_t* upscale8to32(const char *bitmap) {
 
 int main() {
 
-    int ascii_code = (int)'C';
-    char *bitmap8x8 = map[ascii_code];
-    render8x8(bitmap8x8);
-    uint32_t *bitmap32x32 = upscale8to32(bitmap8x8);
-
-//    for (int i=0; i< 32; i++) {
-//        printf("%u", bitmap32x32[i]);
-//        printf("\n");
-//    }
-    render32x32(bitmap32x32);
+    int ascii_code = (int)'A';
+    for (; ascii_code <= 122; ascii_code++) {
+        char *bitmap8x8 = map[ascii_code];
+        render8x8(bitmap8x8);
+        printf("\n");
+        uint32_t *bitmap32x32 = upscale8to32(bitmap8x8);
+        render32x32(bitmap32x32);
+        printf("\n");
+    }
 
     return 0;
 }
