@@ -16,3 +16,24 @@ void MKS_TxData(uint8_t * pData, uint16_t Size);
 /* Helper Methods */
 static void MKS_GPIO_Init(void);
 }
+
+/*
+
+Let's take some time to describe the firmware design
+
+
+start the DMA
+
+prepare memory to be transfered
+
+one call to MKS for every memory section
+
+MKS begins
+
+CPU is independent at this point
+
+MKS runs through the transaction memory
+
+
+
+*/
