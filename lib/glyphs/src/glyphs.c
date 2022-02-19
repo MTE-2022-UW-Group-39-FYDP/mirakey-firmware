@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "glyphs.h"
+
 #define FONT_ROW_TO_BYTE(s) ((s[0]=='*')<<7 | (s[1]=='*')<<6 | (s[2]=='*')<<5 | (s[3]=='*')<<4 | \
                 (s[4]=='*')<<3 | (s[5]=='*')<<2 | (s[6]=='*')<<1 | (s[7]=='*')<<0)
 
@@ -699,20 +701,27 @@ unsigned char* center32x32in72x40(const uint32_t *bitmap) {
     return result;
 }
 
-int main() {
+unsigned char* mapCharToBitmap(char c) {
+    int ascii_code = (int)c;
+    unsigned char *bitmap8x8 = map[ascii_code];
+    uint32_t *bitmap32x32 = upscale8to32(bitmap8x8);
+    return center32x32in72x40(bitmap32x32);
+}
 
-    int ascii_code = (int)'A';
-    for (; ascii_code <= 122; ascii_code++) {
-        unsigned char *bitmap8x8 = map[ascii_code];
+//int main() {
+//
+//    int ascii_code = (int)'A';
+//    for (; ascii_code <= 122; ascii_code++) {
+//        unsigned char *bitmap8x8 = map[ascii_code];
 //        render8x8(bitmap8x8);
 //        printf("\n");
-        uint32_t *bitmap32x32 = upscale8to32(bitmap8x8);
+//        uint32_t *bitmap32x32 = upscale8to32(bitmap8x8);
 //        render32x32(bitmap32x32);
 //        printf("\n");
-        unsigned char *bitmap72x40 = center32x32in72x40(bitmap32x32);
-        render72x40(bitmap72x40);
-        printf("\n");
-    }
-
-    return 0;
-}
+//        unsigned char *bitmap72x40 = center32x32in72x40(bitmap32x32);
+//        render72x40(bitmap72x40);
+//        printf("\n");
+//    }
+//
+//    return 0;
+//}
