@@ -16,12 +16,12 @@ Mirakey Serial Interface
 void MKS_Init(uint16_t NumKeys) {
     HAL_GPIO_WritePin(MKS_SPI_PORT, SSD1306_Reset_Pin, GPIO_PIN_RESET);
     HAL_delay(100);
-    for(uint8_t slaveAddress = 0; i<MKS_NUM_KEYS; ) {
+    for(uint8_t slaveAddress = 0; i<MKS_NUM_KEYS; i++) {
         ActivateDisplay(displayAddress);
     }
 }
 
-void MKS_SendGlyph(uint8_t SlaveAddress, uint8_t* GlyphBuffer) {
+void MKS_TxGlyph(uint8_t SlaveAddress, uint8_t* GlyphBuffer) {
     MKS_Select(SlaveAddress);
     // Write data to each page of RAM. Number of pages
     // depends on the screen height:
@@ -105,7 +105,9 @@ void MKS_TxCommand(uint8_t Command) {
 }
 
 void MKS_TxData(uint8_t * pData, uint16_t Size) {
-    for (uint16_t i=0; i<Size; i++) MKS_TxDataByte(pData[i]);
+    for (uint16_t i=0; i<Size; i++) {
+        MKS_TxDataByte(pData[i]);
+    }
 }
 
 void MKS_TxDataByte(uint8_t * pData) {

@@ -19,7 +19,7 @@ MTE482 Fourth Year Design Project: Mirakey
 
 /* Mirakey Serial Interface */
 void MKS_Init();
-void MKS_SendGlyph(uint8_t SlaveAddress, uint8_t* GlyphBuffer);
+void MKS_TxGlyph(uint8_t SlaveAddress, uint8_t* GlyphBuffer);
 
 #endif
 
