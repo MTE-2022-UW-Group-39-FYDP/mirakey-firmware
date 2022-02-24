@@ -9,22 +9,17 @@ MTE482 Fourth Year Design Project: Mirakey
 
 #ifndef MKS
 #define MKS
+
 #define MKS_NUM_KEYS 12
-#define SSD1306_SPI_PORT hspi2
-#define SSD1306_HEIGHT 40
-#define SSD1306_WIDTH 72
+#define MKS_SPI_PORT hspi2
+#define MKS_DISP_CONTROLLER_SSD1306
+#define MKS_DISP_HEIGHT 40
+#define MKS_DISP_WIDTH 70
 
-/* HAL Equivalent */
+
+/* Mirakey Serial Interface */
 void MKS_Init();
-void MKS_Select(uint8_t SlaveAddress);
-void MKS_TxCommand(uint8_t Command);
-void MKS_TxData(uint8_t * pData, uint16_t Size);
-
-/* Helper Methods */
-void MKS_ActivateDisplay(uint8_t SlaveAddress);
-void MKS_GPIO_Init(void);
-void MKS_ActivateDisplay(uint8_t SlaveAddress);
-}
+void MKS_SendGlyph(uint8_t SlaveAddress, uint8_t* GlyphBuffer);
 
 #endif
 
