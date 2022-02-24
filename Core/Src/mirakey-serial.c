@@ -7,17 +7,25 @@ void MKS_ActivateDisplay(uint8_t SlaveAddress);
 void MKS_Select(uint8_t SlaveAddress);
 void MKS_TxCommand(uint8_t Command);
 void MKS_TxData(uint8_t * pData, uint16_t Size);
-void MKS_TxDataByte(uint8_t * pData);
 
 /*-------------------------------------------------------------------------------------------------
 Mirakey Serial Interface
 -------------------------------------------------------------------------------------------------*/
 
-void MKS_Init(uint16_t NumKeys) {
-    HAL_GPIO_WritePin(MKS_SPI_PORT, SSD1306_Reset_Pin, GPIO_PIN_RESET);
-    HAL_delay(100);
-    for(uint8_t slaveAddress = 0; i<MKS_NUM_KEYS; i++) {
-        ActivateDisplay(displayAddress);
+SPI_HandleTypeDef * MKS_SPI_PORT;
+
+void MKS_Init(SPI_HandleTypeDef * spi_port) {
+	MKS_SPI_PORT = spi_port;
+
+    HAL_GPIO_WritePin(MKS_RESET_PORT, MKS_RESET_PIN, GPIO_PIN_RESET);
+    HAL_Delay(10);
+    HAL_GPIO_WritePin(MKS_RESET_PORT, MKS_RESET_PIN, GPIO_PIN_SET);
+    HAL_Delay(10);
+
+    HAL_Delay(100);
+
+    for(uint8_t slaveAddress = 0; slaveAddress<MKS_NUM_KEYS; slaveAddress++) {
+    	MKS_ActivateDisplay(slaveAddress);
     }
 }
 
@@ -33,7 +41,7 @@ void MKS_TxGlyph(uint8_t SlaveAddress, uint8_t* GlyphBuffer) {
         MKS_TxCommand(0xB0 + i); // Set the current RAM page address.
         MKS_TxCommand(0x00);
         MKS_TxCommand(0x10);
-        MKS_TxData(GlyphBuffer[MKS_DISP_WIDTH*i],MKS_DISP_WIDTH);
+        MKS_TxData(&GlyphBuffer[MKS_DISP_WIDTH*i],MKS_DISP_WIDTH);
     }
 }
 
@@ -93,26 +101,51 @@ void MKS_ActivateDisplay(uint8_t SlaveAddress) {
 }
 
 void MKS_Select(uint8_t SlaveAddress) {
+	// actual MKS Select
     // todo: sync the register clock with SPI clock
     //HAL_SPI_Transmit(&MKS_SPI_PORT, (uint8_t *)SlaveAddress, sizeof(tx), 5000);
     // todo: desync register clock
+
 	// temporary test code
-	HAL_GPIO_Write(MKS_SPI_PORT, SSD1306_Reset_Pin, GPIO_SET_PIN);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
 
 }
 
 void MKS_TxCommand(uint8_t Command) {
-    HAL_SPI_Transmit(&MKS_SPI_PORT, 0x01, sizeof(Command), 5000);
-    HAL_SPI_Transmit(&MKS_SPI_PORT, (uint8_t *)&Command, sizeof(Command), 5000);
+	//*/ HSPI 16-BIT
+	uint8_t word[2];
+	word[0] = 0x00 | (Command>>1);
+	word[1] = Command<<7;
+    HAL_SPI_Transmit(MKS_SPI_PORT, &word, 2, HAL_MAX_DELAY);
+	//*/
+
+	/*/ HSPI 8-BIT
+	uint8_t command_prefix = 0x0000;
+    HAL_SPI_Transmit(MKS_SPI_PORT, &command_prefix, sizeof(command_prefix), HAL_MAX_DELAY);
+    HAL_SPI_Transmit(MKS_SPI_PORT, (uint8_t *)&Command, sizeof(Command), HAL_MAX_DELAY);
+    //*/
+}
+
+void MKS_TxDataByte(uint8_t pData) {
+	//uint16_t word = 0x8000 | ((uint16_t)pData<<7);
+	uint8_t word[2];
+	word[0] = 0x80 | (pData>>1);
+	word[1] = pData<<7;
+	HAL_SPI_Transmit(MKS_SPI_PORT, &word, 2, HAL_MAX_DELAY);
 }
 
 void MKS_TxData(uint8_t * pData, uint16_t Size) {
+	//* HSPI 16-BIT
     for (uint16_t i=0; i<Size; i++) {
-        MKS_TxDataByte(pData[i]);
+    	MKS_TxDataByte(pData[i]);
     }
-}
+    //*/
 
-void MKS_TxDataByte(uint8_t * pData) {
-    HAL_SPI_Transmit(&MKS_SPI_PORT, 0x00, sizeof(uint8_t), 5000);
-    HAL_SPI_Transmit(&MKS_SPI_PORT, pData, sizeof(uint8_t), 5000);
+	/* HSPI 8-BIT
+    uint8_t data_prefix = 0x01;
+	for (uint16_t i=0; i<Size; i++) {
+		HAL_SPI_Transmit(MKS_SPI_PORT, &data_prefix, sizeof(uint8_t), HAL_MAX_DELAY);
+		HAL_SPI_Transmit(MKS_SPI_PORT, pData, sizeof(uint8_t), HAL_MAX_DELAY);
+	}
+	//*/
 }
