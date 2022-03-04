@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <string.h>
 //#include "glyphs.h"
 #include "mirakey-serial.h"
 /* USER CODE END Includes */
@@ -60,13 +61,21 @@ static void MX_SPI2_Init(void);
 /* USER CODE BEGIN 0 */
 
 void start() {
+	//uint8_t display_buffer[70*40] = {[0 ... sizeof display_buffer - 1] = 0x01};
+
+	uint8_t talk[12];
+
 	// turn LED on while we work
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+	strcpy((char*)talk, "hello\r\n");
+	HAL_UART_Transmit(&huart2,(char*)talk,12,HAL_MAX_DELAY);
 
-	MKS_Init(&hspi2);
-	uint8_t display_buffer[70*40] = {[0 ... sizeof display_buffer - 1] = 0x01};
-	MKS_TxGlyph((uint8_t)0x00/*DUMMY SLAVE ADDRESS FOR TETSTING*/, display_buffer);
+	MKS_Init(&hspi2,&huart2);
+
+	//MKS_TxGlyph((uint8_t)0x00/*DUMMY SLAVE ADDRESS FOR TETSTING*/, display_buffer);
 	//MKS_TxGlyph((uint8_t)0x00/*DUMMY SLAVE ADDRESS FOR TETSTING*/, mapCharToBitmap((uint8_t)'X'));
+
+
 
 	// turn LED off
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
@@ -194,10 +203,10 @@ static void MX_SPI2_Init(void)
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_16BIT;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
   hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
@@ -262,7 +271,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|MKS_RES_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|MKS_SSC_Pin|MKS_RES_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(MKS_SSA_GPIO_Port, MKS_SSA_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -270,12 +282,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin MKS_RES_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|MKS_RES_Pin;
+  /*Configure GPIO pins : LD2_Pin MKS_SSC_Pin MKS_RES_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|MKS_SSC_Pin|MKS_RES_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : MKS_SSA_Pin */
+  GPIO_InitStruct.Pin = MKS_SSA_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(MKS_SSA_GPIO_Port, &GPIO_InitStruct);
 
 }
 
