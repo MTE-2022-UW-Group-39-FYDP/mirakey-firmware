@@ -14,19 +14,19 @@
  * -----------------------------------------------------------------------------------------*/
 //#define MKS_SPI_PORT    hspi2		// we're using a variable for this
 #define MKS_RESET_PORT	GPIOA
-#define MKS_RESET_PIN	GPIO_PIN_10
-#define MKS_DC_PORT		GPIOB
-#define MKS_DC_PIN		GPIO_PIN_4
+#define MKS_RESET_PIN	GPIO_PIN_9
+#define MKS_DC_PORT		GPIOA
+#define MKS_DC_PIN		GPIO_PIN_8
 
 // Slave Select Modes: Bitbang, ClockSync
-#define MKS_SS_BITBANG		// The slave selection is manually driven with GPIO pins.
+//#define MKS_SS_BITBANG		// The slave selection is manually driven with GPIO pins.
 //#define MKS_SS_CL_SYNC	// The slave selection is enabled/disabled with MKS_SS_PIN.
 							// Requires hardware to sync data and address clock lines.
 #ifdef MKS_SS_BITBANG
-#define MKS_SSA_PORT 	GPIOC
-#define MKS_SSA_PIN		GPIO_PIN_7
-#define MKS_SSC_PORT 	GPIOA
-#define MKS_SSC_PIN		GPIO_PIN_9
+#define MKS_SSA_PORT 	GPIOA
+#define MKS_SSA_PIN		GPIO_PIN_10
+#define MKS_SSC_PORT 	GPIOC
+#define MKS_SSC_PIN		GPIO_PIN_7
 #endif
 #ifdef MKS_SS_CL_SYNC
 #define MKS_SS_PORT		GPIOA
@@ -52,9 +52,9 @@
 */
 #define MKS_DISP_CONTROLLER_SSD1306
 #define MKS_DISP_HEIGHT 40
-#define MKS_DISP_WIDTH 70
-// multiplex ratio:			0xA8
-// offset within RAM page:  0x1C
+#define MKS_DISP_WIDTH 72
+#define MKS_DISP_HRZ_OFFSET 0x1C
+//#define MKS_DISP_MUX_RATIO 0xA8
 
 
 /*--------------------------------------------------------------------------------------------

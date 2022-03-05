@@ -42,10 +42,14 @@
 
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi2;
+DMA_HandleTypeDef hdma_spi2_tx;
 
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+uint8_t display_buffer[MKS_DISP_WIDTH * MKS_DISP_HEIGHT / 8] =
+	{[0 ... sizeof display_buffer - 1] = 0x01};
+uint8_t talk[12];
 
 /* USER CODE END PV */
 
@@ -53,6 +57,7 @@ UART_HandleTypeDef huart2;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_DMA_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
@@ -61,9 +66,6 @@ static void MX_SPI2_Init(void);
 /* USER CODE BEGIN 0 */
 
 void start() {
-	//uint8_t display_buffer[70*40] = {[0 ... sizeof display_buffer - 1] = 0x01};
-
-	uint8_t talk[12];
 
 	// turn LED on while we work
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
@@ -72,7 +74,7 @@ void start() {
 
 	MKS_Init(&hspi2,&huart2);
 
-	//MKS_TxGlyph((uint8_t)0x00/*DUMMY SLAVE ADDRESS FOR TETSTING*/, display_buffer);
+	MKS_TxGlyph((uint8_t)0x00/*DUMMY SLAVE ADDRESS FOR TETSTING*/, display_buffer);
 	//MKS_TxGlyph((uint8_t)0x00/*DUMMY SLAVE ADDRESS FOR TETSTING*/, mapCharToBitmap((uint8_t)'X'));
 
 
@@ -123,6 +125,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  MX_DMA_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   start();
@@ -256,6 +259,22 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -271,10 +290,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|MKS_SSC_Pin|MKS_RES_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|MKS_DC_Pin|MKS_RES_Pin|MKS_SSA_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(MKS_SSA_GPIO_Port, MKS_SSA_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(MKS_SSC_GPIO_Port, MKS_SSC_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -282,19 +301,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin MKS_SSC_Pin MKS_RES_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|MKS_SSC_Pin|MKS_RES_Pin;
+  /*Configure GPIO pins : LD2_Pin MKS_DC_Pin MKS_RES_Pin MKS_SSA_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|MKS_DC_Pin|MKS_RES_Pin|MKS_SSA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : MKS_SSA_Pin */
-  GPIO_InitStruct.Pin = MKS_SSA_Pin;
+  /*Configure GPIO pin : MKS_SSC_Pin */
+  GPIO_InitStruct.Pin = MKS_SSC_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(MKS_SSA_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(MKS_SSC_GPIO_Port, &GPIO_InitStruct);
 
 }
 
