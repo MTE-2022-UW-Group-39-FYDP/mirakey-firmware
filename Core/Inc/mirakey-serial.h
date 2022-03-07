@@ -19,12 +19,12 @@
 #define MKS_DC_PIN		GPIO_PIN_8
 
 // Slave Select Modes: Bitbang, ClockSync
-//#define MKS_SS_BITBANG		// The slave selection is manually driven with GPIO pins.
+#define MKS_SS_BITBANG		// The slave selection is manually driven with GPIO pins.
 //#define MKS_SS_CL_SYNC	// The slave selection is enabled/disabled with MKS_SS_PIN.
 							// Requires hardware to sync data and address clock lines.
 #ifdef MKS_SS_BITBANG
-#define MKS_SSA_PORT 	GPIOA
-#define MKS_SSA_PIN		GPIO_PIN_10
+#define MKS_SSA_PORT 	GPIOA	//GPIOA
+#define MKS_SSA_PIN		GPIO_PIN_8	//GPIO_PIN_10
 #define MKS_SSC_PORT 	GPIOC
 #define MKS_SSC_PIN		GPIO_PIN_7
 #endif
@@ -38,7 +38,7 @@
  * Mirakey Serial Peripherals Configuration
  * -----------------------------------------------------------------------------------------*/
 
-#define MKS_NUM_KEYS 1	//one key for testing
+#define MKS_NUM_KEYS 2
 /* Layout of the 12 key macro-pad with slave addresses in hex
 
 +---+---+---+---+

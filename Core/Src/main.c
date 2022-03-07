@@ -18,12 +18,15 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <string.h>
-//#include "glyphs.h"
+#include "glyphs.h"
 #include "mirakey-serial.h"
+#include "usb_device.h"
+#include "usbd_hid.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,19 +40,40 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define MKS_SPI_PORT hspi2
+#define MKS_SPI_PORT 	hspi2
+#define KEY0_PORT		GPIOA
+#define KEY0_PIN		GPIO_PIN_7
+#define KEY1_PORT		GPIOA
+#define KEY1_PIN		GPIO_PIN_6
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi2;
-DMA_HandleTypeDef hdma_spi2_tx;
 
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t display_buffer[MKS_DISP_WIDTH * MKS_DISP_HEIGHT / 8] =
-	{[0 ... sizeof display_buffer - 1] = 0x01};
+extern USBD_HandleTypeDef hUsbDeviceFS;
+
+typedef struct
+{
+	uint8_t MODIFIER;
+	uint8_t RESERVED;
+	uint8_t KEYCODE1;
+	uint8_t KEYCODE2;
+	uint8_t KEYCODE3;
+	uint8_t KEYCODE4;
+	uint8_t KEYCODE5;
+	uint8_t KEYCODE6;
+}subKeyBoard;
+
+subKeyBoard keyBoardHIDsub = {0,0,0,0,0,0,0,0};
+
 uint8_t talk[12];
+uint8_t active_layer;
+uint16_t layer_lock;
+uint8_t layer_buf[2];
+uint16_t key_lock;
 
 /* USER CODE END PV */
 
@@ -57,7 +81,6 @@ uint8_t talk[12];
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_DMA_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
@@ -65,34 +88,75 @@ static void MX_SPI2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+void SetLayer0() {
+	MKS_TxGlyph(0b11111101, mapCharToBitmap('A'));
+	MKS_TxGlyph(0b11111110, mapCharToBitmap('B'));
+	layer_buf[0] = 0x04; // a
+	layer_buf[1] = 0x05; // b
+	active_layer = 0;
+}
+
+void SetLayer1() {
+	MKS_TxGlyph(0b11111101, mapCharToBitmap('C'));
+	MKS_TxGlyph(0b11111110, mapCharToBitmap('D'));
+	layer_buf[0] = 0x06; // c
+	layer_buf[1] = 0x07; // d
+	active_layer = 1;
+}
+
 void start() {
+	MKS_Init(&hspi2, &huart2);
+	SetLayer0();
+	active_layer = 0;
+	layer_lock = 0;
+	key_lock = 0;
 
-	// turn LED on while we work
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-	strcpy((char*)talk, "hello\r\n");
-	HAL_UART_Transmit(&huart2,(char*)talk,12,HAL_MAX_DELAY);
-
-	MKS_Init(&hspi2,&huart2);
-
-	MKS_TxGlyph((uint8_t)0x00/*DUMMY SLAVE ADDRESS FOR TETSTING*/, display_buffer);
-	//MKS_TxGlyph((uint8_t)0x00/*DUMMY SLAVE ADDRESS FOR TETSTING*/, mapCharToBitmap((uint8_t)'X'));
-
-
-
-	// turn LED off
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+	HAL_Delay(7000);
+	strcpy((char*)talk, "Initialized\r\n");
+	HAL_UART_Transmit(&huart2, (char*)talk, 12, HAL_MAX_DELAY);
 }
 
 void loop() {
-	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	//HAL_Delay(1000);
-	//uint8_t test[4] = {0xFF,0xFF,0xFF,0xFF};
-	//uint8_t test2 = 0xFF;
-    //HAL_SPI_Transmit(&hspi2, &test, sizeof(test), HAL_MAX_DELAY);
-	//HAL_Delay(1000);
-    //HAL_SPI_Transmit(&hspi2, &test2, sizeof(test), HAL_MAX_DELAY);
-	//HAL_Delay(500);
-    //HAL_GPIO_TogglePin(MKS_RESET_PORT, MKS_RESET_PIN);
+
+	if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13) == GPIO_PIN_RESET && layer_lock == 0) {
+		// toggle the layer
+		if(active_layer == 0) {
+			SetLayer1();
+		} else if (active_layer == 1) {
+			SetLayer0();
+		}
+		// disable layer toggle for a while
+		layer_lock = 0xFFFF;
+	} else if (layer_lock != 0){
+		layer_lock--;
+	}
+
+	if (key_lock == 0) {
+		if(HAL_GPIO_ReadPin(KEY0_PORT,KEY0_PIN) == GPIO_PIN_RESET) {
+			// first key pressed
+			keyBoardHIDsub.MODIFIER=0x02;  // To press shift key
+			keyBoardHIDsub.KEYCODE1=layer_buf[0];  // Press primary key
+			USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
+			HAL_Delay(50);
+			keyBoardHIDsub.MODIFIER=0x00;  // To release shift key
+			keyBoardHIDsub.KEYCODE1=0x00;  // Release A key
+			USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
+			HAL_Delay(50);
+		}
+		else if(HAL_GPIO_ReadPin(KEY1_PORT,KEY1_PIN) == GPIO_PIN_RESET) {
+			// first key pressed
+			keyBoardHIDsub.MODIFIER=0x02;  // To press shift key
+			keyBoardHIDsub.KEYCODE1=layer_buf[1];  // Press secondary key
+			USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
+			HAL_Delay(50);
+			keyBoardHIDsub.MODIFIER=0x00;  // To release shift key
+			keyBoardHIDsub.KEYCODE1=0x00;  // Release B key
+			USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
+			HAL_Delay(50);
+		}
+	} else {
+		key_lock--;
+	}
 }
 /* USER CODE END 0 */
 
@@ -125,7 +189,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  MX_DMA_Init();
+  MX_USB_DEVICE_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   start();
@@ -159,15 +223,16 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
+  RCC_OscInitStruct.PLL.PLLN = 72;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-  RCC_OscInitStruct.PLL.PLLQ = 7;
+  RCC_OscInitStruct.PLL.PLLQ = 3;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -176,12 +241,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
@@ -259,22 +324,6 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void)
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA1_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA1_Stream4_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -290,7 +339,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|MKS_DC_Pin|MKS_RES_Pin|MKS_SSA_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|MKS_DC_SSA_Pin|MKS_RES_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(MKS_SSC_GPIO_Port, MKS_SSC_Pin, GPIO_PIN_RESET);
@@ -301,11 +350,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin MKS_DC_Pin MKS_RES_Pin MKS_SSA_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|MKS_DC_Pin|MKS_RES_Pin|MKS_SSA_Pin;
+  /*Configure GPIO pins : LD2_Pin MKS_DC_SSA_Pin MKS_RES_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|MKS_DC_SSA_Pin|MKS_RES_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : KEY1_Pin KEY0_Pin */
+  GPIO_InitStruct.Pin = KEY1_Pin|KEY0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : MKS_SSC_Pin */

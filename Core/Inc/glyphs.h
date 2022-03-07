@@ -1,10 +1,9 @@
 #ifndef glyphs_h
 #define glyphs_h
 
-uint8_t * mapCharToBitmap(uint8_t c);
+unsigned char* mapCharToBitmap(char c);
 
-#if false
 // For debugging/testing
-void render72x40(const char * bitmap);
-#endif
+void render40x40(const unsigned char *bitmap);
+
 #endif
