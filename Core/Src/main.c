@@ -22,7 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <string.h>
-//#include "glyphs.h"
+#include "glyphs.h"
 #include "mirakey-serial.h"
 /* USER CODE END Includes */
 
@@ -37,19 +37,24 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define MKS_SPI_PORT hspi2
+#define MKS_SPI_PORT 	hspi2
+#define KEY0_PORT		GPIOA
+#define KEY0_PIN		GPIO_PIN_7
+#define KEY1_PORT		GPIOA
+#define KEY1_PIN		GPIO_PIN_6
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi2;
-DMA_HandleTypeDef hdma_spi2_tx;
 
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t display_buffer[MKS_DISP_WIDTH * MKS_DISP_HEIGHT / 8] =
-	{[0 ... sizeof display_buffer - 1] = 0x01};
 uint8_t talk[12];
+uint8_t active_layer;
+uint16_t layer_lock;
+uint8_t layer_buf[2];
+uint16_t key_lock;
 
 /* USER CODE END PV */
 
@@ -57,7 +62,6 @@ uint8_t talk[12];
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_DMA_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
@@ -65,34 +69,64 @@ static void MX_SPI2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+void SetLayer0() {
+	MKS_TxGlyph(0b11111101, mapCharToBitmap('A'));
+	MKS_TxGlyph(0b11111110, mapCharToBitmap('B'));
+	layer_buf[0] = 'A';
+	layer_buf[1] = 'B';
+	active_layer = 0;
+}
+
+void SetLayer1() {
+	MKS_TxGlyph(0b11111101, mapCharToBitmap('C'));
+	MKS_TxGlyph(0b11111110, mapCharToBitmap('D'));
+	layer_buf[0] = 'C';
+	layer_buf[1] = 'D';
+	active_layer = 1;
+}
+
 void start() {
+	MKS_Init(&hspi2, &huart2);
+	SetLayer0();
+	active_layer = 0;
+	layer_lock = 0;
+	key_lock = 0;
 
-	// turn LED on while we work
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-	strcpy((char*)talk, "hello\r\n");
-	HAL_UART_Transmit(&huart2,(char*)talk,12,HAL_MAX_DELAY);
-
-	MKS_Init(&hspi2,&huart2);
-
-	MKS_TxGlyph((uint8_t)0x00/*DUMMY SLAVE ADDRESS FOR TETSTING*/, display_buffer);
-	//MKS_TxGlyph((uint8_t)0x00/*DUMMY SLAVE ADDRESS FOR TETSTING*/, mapCharToBitmap((uint8_t)'X'));
-
-
-
-	// turn LED off
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+	HAL_Delay(7000);
+	strcpy((char*)talk, "Initialized\r\n");
+	HAL_UART_Transmit(&huart2, (char*)talk, 12, HAL_MAX_DELAY);
 }
 
 void loop() {
-	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	//HAL_Delay(1000);
-	//uint8_t test[4] = {0xFF,0xFF,0xFF,0xFF};
-	//uint8_t test2 = 0xFF;
-    //HAL_SPI_Transmit(&hspi2, &test, sizeof(test), HAL_MAX_DELAY);
-	//HAL_Delay(1000);
-    //HAL_SPI_Transmit(&hspi2, &test2, sizeof(test), HAL_MAX_DELAY);
-	//HAL_Delay(500);
-    //HAL_GPIO_TogglePin(MKS_RESET_PORT, MKS_RESET_PIN);
+
+	if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13) == GPIO_PIN_RESET && layer_lock == 0) {
+		// toggle the layer
+		if(active_layer == 0) {
+			SetLayer1();
+		} else if (active_layer == 1) {
+			SetLayer0();
+		}
+		// disable layer toggle for a while
+		layer_lock = 0xFFFF;
+	} else if (layer_lock != 0){
+		layer_lock--;
+	}
+
+	if (key_lock == 0) {
+		if(HAL_GPIO_ReadPin(KEY0_PORT,KEY0_PIN) == GPIO_PIN_SET) {
+			// first key pressed
+			strcpy((char*)talk, layer_buf[0]);
+			HAL_UART_Transmit(&huart2, (char*)talk, 12, HAL_MAX_DELAY);
+
+		}
+		else if(HAL_GPIO_ReadPin(KEY1_PORT,KEY1_PIN) == GPIO_PIN_SET) {
+			// first key pressed
+			strcpy((char*)talk, layer_buf[1]);
+			HAL_UART_Transmit(&huart2, (char*)talk, 12, HAL_MAX_DELAY);
+		}
+	} else {
+		key_lock--;
+	}
 }
 /* USER CODE END 0 */
 
@@ -125,7 +159,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  MX_DMA_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   start();
@@ -259,22 +292,6 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void)
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA1_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA1_Stream4_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -290,7 +307,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|MKS_DC_Pin|MKS_RES_Pin|MKS_SSA_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|MKS_DC_SSA_Pin|MKS_RES_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(MKS_SSC_GPIO_Port, MKS_SSC_Pin, GPIO_PIN_RESET);
@@ -301,11 +318,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin MKS_DC_Pin MKS_RES_Pin MKS_SSA_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|MKS_DC_Pin|MKS_RES_Pin|MKS_SSA_Pin;
+  /*Configure GPIO pins : LD2_Pin MKS_DC_SSA_Pin MKS_RES_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|MKS_DC_SSA_Pin|MKS_RES_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : KEY1_Pin KEY0_Pin */
+  GPIO_InitStruct.Pin = KEY1_Pin|KEY0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : MKS_SSC_Pin */
