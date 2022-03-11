@@ -19,7 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
-#include "usbd_hid.h"
+#include "key_config.h"
+#include "mirakey_send_hid.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -43,21 +44,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern USBD_HandleTypeDef hUsbDeviceFS;
 
-typedef struct
-{
-	uint8_t MODIFIER;
-	uint8_t RESERVED;
-	uint8_t KEYCODE1;
-	uint8_t KEYCODE2;
-	uint8_t KEYCODE3;
-	uint8_t KEYCODE4;
-	uint8_t KEYCODE5;
-	uint8_t KEYCODE6;
-}subKeyBoard;
-
-subKeyBoard keyBoardHIDsub = {0,0,0,0,0,0,0,0};
+uint8_t active_layer;
+char layer_chars[4][11] = LAYER_LAYOUTS;
 
 /* USER CODE END PV */
 
@@ -70,6 +59,14 @@ static void MX_GPIO_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void ToggleLayer() {
+	active_layer = (active_layer + 1) % NUM_LAYERS;
+	/* UPDATE DISPLAYS */
+//	for (int key = 0; key < 12; key++) {
+//		MKS_TxGlyph(0b11111101+key, mapCharToBitmap(layer_chars[active_layer][key]));	// I'm assuming here that slave address numbers are consecutive
+//	}
+}
 
 /* USER CODE END 0 */
 
@@ -104,6 +101,8 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
+  active_layer = 0;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -113,59 +112,56 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//	  if (
-//			  HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_0) == GPIO_PIN_RESET	//K1
-//			  || HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_6) == GPIO_PIN_RESET	//K2
-//			  || HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_0) == GPIO_PIN_RESET	//K3
-//			  || HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_1) == GPIO_PIN_RESET	//K4
-//			  || HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_5) == GPIO_PIN_RESET	//K5
-//			  || HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_4) == GPIO_PIN_RESET	//K6
-//			  || HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_1) == GPIO_PIN_RESET	//K7
-//			  || HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_2) == GPIO_PIN_RESET	//K8
-//			  || HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_4) == GPIO_PIN_RESET	//K9
-//			  || HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_3) == GPIO_PIN_RESET	//K10
-//			  || HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_2) == GPIO_PIN_RESET	//K11
-//			  || HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_3) == GPIO_PIN_RESET	//K12
-//			  ) {
-//		  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
-//	  } else {
-//		  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
-//	  }
-//	  HAL_Delay(50);
-
-	  if (HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_0) == GPIO_PIN_RESET) {
-		  keyBoardHIDsub.MODIFIER=0x02;  // To press shift key
-		  keyBoardHIDsub.KEYCODE1=0x04;  // Press primary key
-		  USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
-		  HAL_Delay(50);
-		  keyBoardHIDsub.MODIFIER=0x00;  // To release shift key
-		  keyBoardHIDsub.KEYCODE1=0x00;  // Release A key
-		  USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
-		  HAL_Delay(50);
-	  }
-	  if (HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_6) == GPIO_PIN_RESET) {
-		  keyBoardHIDsub.MODIFIER=0x02;  // To press shift key
-		  keyBoardHIDsub.KEYCODE1=0x05;  // Press primary key
-		  USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
-		  HAL_Delay(50);
-		  keyBoardHIDsub.MODIFIER=0x00;  // To release shift key
-		  keyBoardHIDsub.KEYCODE1=0x00;  // Release A key
-		  USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
-		  HAL_Delay(50);
+	  if (LAYER_KEY == KEY_DOWN) {
+		  while (LAYER_KEY == KEY_DOWN) {
+			  // Wait until key is up before switching layers
+		  }
+		  ToggleLayer();
 	  }
 
-//	  keyBoardHIDsub.MODIFIER=0x02;  // To press shift key
-//	  keyBoardHIDsub.KEYCODE1=0x04;  // Press A key
-//	  keyBoardHIDsub.KEYCODE2=0x05;  // Press B key
-//	  keyBoardHIDsub.KEYCODE3=0x06;  // Press C key
-//	  USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
-//	  HAL_Delay(50); 		       // Press all key for 50 milliseconds
-//	  keyBoardHIDsub.MODIFIER=0x00;  // To release shift key
-//	  keyBoardHIDsub.KEYCODE1=0x00;  // Release A key
-//	  keyBoardHIDsub.KEYCODE2=0x00;  // Release B key
-//	  keyBoardHIDsub.KEYCODE3=0x00;  // Release C key
-//	  USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
-//	  HAL_Delay(1000); 	       // Repeat this task on every 1 second
+	  if (K1 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][0]);
+	  }
+
+	  if (K2 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][1]);
+	  }
+
+	  if (K3 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][2]);
+	  }
+
+	  if (K4 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][3]);
+	  }
+
+	  if (K5 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][4]);
+	  }
+
+	  if (K6 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][5]);
+	  }
+
+	  if (K7 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][6]);
+	  }
+
+	  if (K8 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][7]);
+	  }
+
+	  if (K9 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][8]);
+	  }
+
+	  if (K10 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][9]);
+	  }
+
+	  if (K11 == KEY_DOWN) {
+		  hid_send_char(layer_chars[active_layer][10]);
+	  }
   }
   /* USER CODE END 3 */
 }
