@@ -28,9 +28,9 @@
 #define NUM_LAYERS 4
 
 // 11 characters per layer, since K12 is the dedicated layer toggle key
-#define LAYER_LAYOUTS {{'A','B','C','D','E','F','G','H','I','J','K'}, \
-	{'L','M','N','O','P','Q','R','S','T','U','V'}, \
-	{'W','X','Y','Z',' ','A','A','A','A','A','A'}, \
-	{'A','A','A','A','A','A','A','A','A','A','A'}};
+#define LAYER_LAYOUTS {{'A','B','C','D','E','F','G','H',' ','I','J'}, \
+	{'K','L','M','N','O','P','Q','R',' ','S','T'}, \
+	{'U','V','W','X','Y','Z','1','2',' ','3','4'}, \
+	{'5','6','7','8','9','0','a','b',' ','c','d'}};
 
 #endif /* INC_KEY_CONFIG_H_ */
