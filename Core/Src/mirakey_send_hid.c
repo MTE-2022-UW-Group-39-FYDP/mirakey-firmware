@@ -8,6 +8,8 @@
 #include "usbd_hid.h"
 #include "usb_hid_keys.h"
 
+#define CONSECUTIVE_SEND_INITIAL_DELAY_MS 500
+
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
 typedef struct
@@ -53,9 +55,19 @@ const char ascii_to_hid_key_map[95][2] = {
     {KEY_MOD_LSHIFT, KEY_RIGHTBRACE}, {KEY_MOD_LSHIFT, KEY_GRAVE},
 };
 
+uint32_t time_since_last_send[128] = {};
+uint8_t most_recent_char_sent = 0x00;
+uint32_t num_times_recent_char_sent = 0;
+
 void hid_send_char(uint8_t c)
 {
 	// TODO: Implement 6 key rollover using a circular queue for the HID report keycode slots
+
+	if (most_recent_char_sent == c && num_times_recent_char_sent == 1) {
+		if (HAL_GetTick() - time_since_last_send[c] < CONSECUTIVE_SEND_INITIAL_DELAY_MS) {
+			return;
+		}
+	}
 
     if (c > 127) return;
     if (c < 32) return;
@@ -65,10 +77,19 @@ void hid_send_char(uint8_t c)
     keyBoardHIDsub.MODIFIER = ascii_to_hid_key_map[c][0];
     keyBoardHIDsub.KEYCODE1 = ascii_to_hid_key_map[c][1];
     USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
-	HAL_Delay(50);
+	HAL_Delay(25);
 
 	keyBoardHIDsub.MODIFIER=0x00;
 	keyBoardHIDsub.KEYCODE1=0x00;
 	USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
-	HAL_Delay(50);
+	HAL_Delay(25);
+
+	c += 32;
+	time_since_last_send[c] = HAL_GetTick();
+	if (most_recent_char_sent != c) {
+		most_recent_char_sent = c;
+		num_times_recent_char_sent = 1;
+	} else {
+		num_times_recent_char_sent++;
+	}
 }

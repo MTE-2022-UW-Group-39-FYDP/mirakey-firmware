@@ -46,7 +46,10 @@
 /* USER CODE BEGIN PV */
 
 uint8_t active_layer;
-char layer_chars[4][11] = LAYER_LAYOUTS;
+char layer_chars[NUM_LAYERS][11] = LAYER_LAYOUTS;
+uint8_t debounced;
+int count;
+uint8_t key_pressed_in_loop;
 
 /* USER CODE END PV */
 
@@ -66,6 +69,36 @@ void ToggleLayer() {
 //	for (int key = 0; key < 12; key++) {
 //		MKS_TxGlyph(0b11111101+key, mapCharToBitmap(layer_chars[active_layer][key]));	// I'm assuming here that slave address numbers are consecutive
 //	}
+}
+
+void debounceAndToggleLayer() {
+	debounced = 0;
+	count = 0;
+	while (!debounced) {
+		if (LAYER_KEY == KEY_DOWN) {
+			count++;
+			if (count >= 5) {
+				debounced = 1;
+			}
+		} else {
+			count = 0;
+		}
+	}
+
+	ToggleLayer();
+
+	debounced = 0;
+	count = 0;
+	while (!debounced) {
+		if (LAYER_KEY == KEY_UP) {
+			count++;
+			if (count >= 5) {
+				debounced = 1;
+			}
+		} else {
+			count = 0;
+		}
+	}
 }
 
 /* USER CODE END 0 */
@@ -112,55 +145,69 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
 	  if (LAYER_KEY == KEY_DOWN) {
-		  while (LAYER_KEY == KEY_DOWN) {
-			  // Wait until key is up before switching layers
-		  }
-		  ToggleLayer();
+		  debounceAndToggleLayer();
 	  }
 
+	  key_pressed_in_loop = 0;
 	  if (K1 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][0]);
+		  key_pressed_in_loop = 1;
 	  }
 
 	  if (K2 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][1]);
+		  key_pressed_in_loop = 1;
 	  }
 
 	  if (K3 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][2]);
+		  key_pressed_in_loop = 1;
 	  }
 
 	  if (K4 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][3]);
+		  key_pressed_in_loop = 1;
 	  }
 
 	  if (K5 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][4]);
+		  key_pressed_in_loop = 1;
 	  }
 
 	  if (K6 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][5]);
+		  key_pressed_in_loop = 1;
 	  }
 
 	  if (K7 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][6]);
+		  key_pressed_in_loop = 1;
 	  }
 
 	  if (K8 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][7]);
+		  key_pressed_in_loop = 1;
 	  }
 
 	  if (K9 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][8]);
+		  key_pressed_in_loop = 1;
 	  }
 
 	  if (K10 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][9]);
+		  key_pressed_in_loop = 1;
 	  }
 
 	  if (K11 == KEY_DOWN) {
 		  hid_send_char(layer_chars[active_layer][10]);
+		  key_pressed_in_loop = 1;
+	  }
+
+	  if (!key_pressed_in_loop) {
+		  num_times_recent_char_sent = 0;
 	  }
   }
   /* USER CODE END 3 */
