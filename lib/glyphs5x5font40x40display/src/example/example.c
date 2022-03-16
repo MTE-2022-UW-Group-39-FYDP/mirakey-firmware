@@ -2,12 +2,12 @@
 #include "../glyphs.h"
 
 int main() {
-    unsigned char* bitmap = mapCharToBitmap('A');
+    unsigned char* bitmap = mapCharToBitmap(' ');
     render40x40(bitmap);
     printf("\n");
-    bitmap = mapCharToBitmap('B');
+    bitmap = mapCharToBitmap('0');
     render40x40(bitmap);
     printf("\n");
-    bitmap = mapCharToBitmap('C');
+    bitmap = mapCharToBitmap('a');
     render40x40(bitmap);
 }
