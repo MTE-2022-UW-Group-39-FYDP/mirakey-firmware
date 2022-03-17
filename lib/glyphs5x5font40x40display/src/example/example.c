@@ -8,6 +8,6 @@ int main() {
     bitmap = mapCharToBitmap('0');
     render40x40(bitmap);
     printf("\n");
-    bitmap = mapCharToBitmap('a');
+    bitmap = mapCharToBitmap(8);
     render40x40(bitmap);
 }
