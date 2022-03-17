@@ -67,7 +67,7 @@
  * Mirakey Serial Peripherals Configuration
  * -----------------------------------------------------------------------------------------*/
 
-#define MKS_NUM_KEYS 1	//one key for testing
+#define MKS_NUM_KEYS 12
 /* Layout of the 12 key macro-pad with slave addresses in hex
 
 +---+---+---+---+

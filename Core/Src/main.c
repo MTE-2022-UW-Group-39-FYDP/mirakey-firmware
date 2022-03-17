@@ -21,6 +21,7 @@
 #include "usb_device.h"
 #include "key_config.h"
 #include "mirakey_send_hid.h"
+#include "mirakey_serial.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -66,9 +67,9 @@ static void MX_GPIO_Init(void);
 void ToggleLayer() {
 	active_layer = (active_layer + 1) % NUM_LAYERS;
 	/* UPDATE DISPLAYS */
-//	for (int key = 0; key < 12; key++) {
-//		MKS_TxGlyph(0b11111101+key, mapCharToBitmap(layer_chars[active_layer][key]));	// I'm assuming here that slave address numbers are consecutive
-//	}
+	for (int key = 0; key < MKS_NUM_KEYS; key++) {
+		MKS_TxGlyph(key, mapCharToBitmap(layer_chars[active_layer][key]));
+	}
 }
 
 void debounceAndToggleLayer() {
@@ -134,6 +135,7 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
+  MKS_Init(&hspi2);
   active_layer = 0;
 
   /* USER CODE END 2 */
