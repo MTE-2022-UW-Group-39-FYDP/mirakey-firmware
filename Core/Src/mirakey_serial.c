@@ -13,7 +13,6 @@ Mirakey Serial Interface
 -------------------------------------------------------------------------------------------------*/
 
 SPI_HandleTypeDef * MKS_SPI_PORT;
-UART_HandleTypeDef * MKS_UART_PORT;	// for debugging
 #ifdef MKS_SPI
 GPIO_PORT_Typedef mks_cs_ports[] = {
     MKS_CS0_PORT,
@@ -46,9 +45,8 @@ GPIO_PIN_Typedef mks_cs_pins[] = {
 uint8_t previous_slave;
 #endif
 
-void MKS_Init(SPI_HandleTypeDef * spi_port, UART_HandleTypeDef * uart_port) {
+void MKS_Init(SPI_HandleTypeDef * spi_port) {
 	MKS_SPI_PORT = spi_port;
-	MKS_UART_PORT = uart_port;
 	#ifdef MKS_SPI
 	previous_slave = 0;
 	#endif
