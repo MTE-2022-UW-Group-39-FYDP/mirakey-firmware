@@ -39,28 +39,28 @@
 #ifdef MKS_SPI
 #define MKS_CS0_PORT    GPIOB
 #define MKS_CS0_PIN     GPIO_PIN_12
-#define MKS_CS1_PORT    GPIOC
-#define MKS_CS1_PIN     GPIO_PIN_10
+#define MKS_CS1_PORT    GPIOB
+#define MKS_CS1_PIN     GPIO_PIN_13
 #define MKS_CS2_PORT    GPIOC
 #define MKS_CS2_PIN     GPIO_PIN_10
 #define MKS_CS3_PORT    GPIOC
-#define MKS_CS3_PIN     GPIO_PIN_10
-#define MKS_CS4_PORT    GPIOC
-#define MKS_CS4_PIN     GPIO_PIN_10
+#define MKS_CS3_PIN     GPIO_PIN_12
+#define MKS_CS4_PORT    GPIOB
+#define MKS_CS4_PIN     GPIO_PIN_15
 #define MKS_CS5_PORT    GPIOC
-#define MKS_CS5_PIN     GPIO_PIN_10
-#define MKS_CS6_PORT    GPIOC
-#define MKS_CS6_PIN     GPIO_PIN_10
-#define MKS_CS7_PORT    GPIOC
-#define MKS_CS7_PIN     GPIO_PIN_10
+#define MKS_CS5_PIN     GPIO_PIN_7
+#define MKS_CS6_PORT    GPIOD
+#define MKS_CS6_PIN     GPIO_PIN_2
+#define MKS_CS7_PORT    GPIOB
+#define MKS_CS7_PIN     GPIO_PIN_3
 #define MKS_CS8_PORT    GPIOC
-#define MKS_CS8_PIN     GPIO_PIN_10
-#define MKS_CS9_PORT    GPIOC
-#define MKS_CS9_PIN     GPIO_PIN_10
-#define MKS_CS10_PORT   GPIOC
-#define MKS_CS10_PIN    GPIO_PIN_10
+#define MKS_CS8_PIN     GPIO_PIN_9
+#define MKS_CS9_PORT    GPIOA
+#define MKS_CS9_PIN     GPIO_PIN_9
+#define MKS_CS10_PORT   GPIOB
+#define MKS_CS10_PIN    GPIO_PIN_4
 #define MKS_CS11_PORT   GPIOC
-#define MKS_CS11_PIN    GPIO_PIN_10
+#define MKS_CS11_PIN    GPIO_PIN_14
 #endif
 
 

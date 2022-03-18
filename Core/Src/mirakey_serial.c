@@ -3,7 +3,7 @@
 /*-------------------------------------------------------------------------------------------------
 Helper Method Prototypes
 -------------------------------------------------------------------------------------------------*/
-void MKS_ActivateDisplay(uint8_t SlaveAddress);
+void MKS_ActivateDisplay(uint8_t SlaveAddress, uint8_t * pDispBuf);
 void MKS_Select(uint8_t SlaveAddress);
 void MKS_TxCommand(uint8_t* pCommand, size_t Size);
 void MKS_TxData(uint8_t * pData, size_t Size);
@@ -46,6 +46,9 @@ uint8_t previous_slave;
 #endif
 
 void MKS_Init(SPI_HandleTypeDef * spi_port) {
+	uint8_t blank_screen[MKS_DISP_WIDTH * MKS_DISP_HEIGHT / 8] = {
+			[0 ... sizeof blank_screen - 1] = 0x00
+	};
 	MKS_SPI_PORT = spi_port;
 	#ifdef MKS_SPI
 	previous_slave = 0;
@@ -59,20 +62,20 @@ void MKS_Init(SPI_HandleTypeDef * spi_port) {
     HAL_Delay(100);
     // run initialization commands for all displays
     for(uint8_t slaveAddress = 0; slaveAddress<MKS_NUM_KEYS; slaveAddress++) {
-    	MKS_ActivateDisplay(slaveAddress);
+    	MKS_ActivateDisplay(slaveAddress,blank_screen);
     }
 }
 
 void MKS_TxGlyph(uint8_t SlaveAddress, uint8_t* GlyphBuffer) {
     MKS_Select(SlaveAddress);
-    MKS_TxData(GlyphBuffer,MKS_DISP_WIDTH * MKS_DISP_HEIGHT / 8);
+    MKS_TxData(GlyphBuffer,40 * 40 / 8);
 }
 
 /*-------------------------------------------------------------------------------------------------
 Helper Methods
 -------------------------------------------------------------------------------------------------*/
 
-void MKS_ActivateDisplay(uint8_t SlaveAddress) {
+void MKS_InitializationCmds(uint8_t height, uint8_t width, uint8_t hrz_offset) {
 	uint8_t init_cmds[] = {
 		0xAE,	// Turn display off
 
@@ -82,12 +85,12 @@ void MKS_ActivateDisplay(uint8_t SlaveAddress) {
 		0xB0,
 
 		0x21,	// Set the start and end columns
-		(uint8_t)(MKS_DISP_HRZ_OFFSET),
-		(uint8_t)(MKS_DISP_HRZ_OFFSET + MKS_DISP_WIDTH - 1),
+		(uint8_t)(hrz_offset),
+		(uint8_t)(hrz_offset + width - 1),
 
 		0x22,	// Set start and end pages
 		0x00,
-		(uint8_t)(MKS_DISP_HEIGHT/8 - 1),	// 5 pages for 40px height
+		(uint8_t)(height/8 - 1),	// 5 pages for 40px height
 
 		0xC8,	// Set COM output scan direction <--- vertical orientation (CHECK) alt is 0xC0
 
@@ -101,7 +104,7 @@ void MKS_ActivateDisplay(uint8_t SlaveAddress) {
 		0xA6,   // Set normal color
 
 		0xA8,   // Set multiplex ratio
-		(uint8_t)(MKS_DISP_HEIGHT - 1),   // value depends on screen height
+		(uint8_t)(height - 1),   // value depends on screen height
 
 		0xA4,   // Make output track RAM content (0xA5 turns everything on ignoring RAM)
 
@@ -127,27 +130,42 @@ void MKS_ActivateDisplay(uint8_t SlaveAddress) {
 
 		//0xA5,	// used to test display
 	};
-	MKS_Select(SlaveAddress);
 	MKS_TxCommand(init_cmds, 32);
 }
 
+void MKS_ActivateDisplay(uint8_t SlaveAddress, uint8_t * pDispBuf) {
+	MKS_Select(SlaveAddress);
+	MKS_InitializationCmds(MKS_DISP_HEIGHT, MKS_DISP_WIDTH, MKS_DISP_HRZ_OFFSET);
+	HAL_Delay(10);
+	MKS_TxData(pDispBuf, MKS_DISP_WIDTH * MKS_DISP_HEIGHT / 8);	// blank screen
+	MKS_InitializationCmds(40, 40, MKS_DISP_HRZ_OFFSET + 16); // adjust to glyph size
+	HAL_Delay(10);
+}
+
 void MKS_Select(uint8_t SlaveAddress) {
-
-	//temp test code for testing
-	//HAL_GPIO_WritePin(GPIOA,GPIO_PIN_10,GPIO_PIN_RESET);
-
 #ifdef MKS_SS_BITBANG
-	//todo: test the timing, might need small delays
+	// SA slave address
 	for(uint8_t i=0; i<8; i++) {
-		HAL_GPIO_WritePin(MKS_SSC_PORT,MKS_SSC_PIN,GPIO_PIN_RESET); 			// SS clock down
-		HAL_GPIO_WritePin(MKS_SSA_PORT,MKS_SSA_PIN,SlaveAddress & (1<<i) != 0); // set SS bit
-		HAL_GPIO_WritePin(MKS_SSC_PORT,MKS_SSC_PIN,GPIO_PIN_SET); 				// SS clock up
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(MKS_SSC_PORT,MKS_SSC_PIN,GPIO_PIN_RESET);
+
+		HAL_Delay(1);
+
+		HAL_GPIO_WritePin(MKS_SSA_PORT,MKS_SSA_PIN,((SlaveAddress & (0x80>>i)) != 0) ? GPIO_PIN_SET : GPIO_PIN_RESET); // set SS bit, MSB first
+
+		HAL_Delay(1);
+
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(MKS_SSC_PORT,MKS_SSC_PIN,GPIO_PIN_SET);
+
+		HAL_Delay(1);
 	}
-#endif
-#ifdef MKS_SS_CL_SYNC
-	HAL_GPIO_WritePin(MKS_SSC_PORT,MKS_SSC_PIN,GPIO_PIN_SET);			// slave select enable
-	HAL_SPI_Transmit(MKS_SPI_PORT, &SlaveAddress, 1, HAL_MAX_DELAY);	// transmit slave address
-	HAL_GPIO_WritePin(MKS_SSC_PORT,MKS_SSC_PIN,GPIO_PIN_RESET);			// slave select disable
+
+	// SAP, slave address prefix guarantees CS update
+	HAL_GPIO_WritePin(MKS_SSC_PORT,MKS_SSC_PIN,GPIO_PIN_RESET); 			// SS clock down
+	HAL_Delay(1);
+	HAL_GPIO_WritePin(MKS_SSC_PORT,MKS_SSC_PIN,GPIO_PIN_SET); 				// SS clock up
+	HAL_Delay(1);//*/
 #endif
 #ifdef MKS_SPI
     // unselect previous CS (active low)

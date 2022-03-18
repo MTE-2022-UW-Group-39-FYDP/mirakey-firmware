@@ -26,7 +26,8 @@ typedef struct
 
 subKeyBoard keyBoardHIDsub = {0,0,0,0,0,0,0,0};
 
-const char ascii_to_hid_key_map[95][2] = {
+const char ascii_to_hid_key_map[165][2] = {
+	{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,KEY_BACKSPACE},{0,0},{0,0},{0,0},{0,0},{0,KEY_ENTER},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,KEY_ESC},{0,0},{0,0},{0,0},{0,0},
     {0, KEY_SPACE}, {KEY_MOD_LSHIFT, KEY_1}, {KEY_MOD_LSHIFT, KEY_APOSTROPHE},
     {KEY_MOD_LSHIFT, KEY_3}, {KEY_MOD_LSHIFT, KEY_4}, {KEY_MOD_LSHIFT, KEY_5},
     {KEY_MOD_LSHIFT, KEY_7}, {0, KEY_APOSTROPHE}, {KEY_MOD_LSHIFT, KEY_9},
@@ -53,9 +54,16 @@ const char ascii_to_hid_key_map[95][2] = {
     {0, KEY_U}, {0, KEY_V}, {0, KEY_W}, {0, KEY_X}, {0, KEY_Y}, {0, KEY_Z},
     {KEY_MOD_LSHIFT, KEY_LEFTBRACE}, {KEY_MOD_LSHIFT, KEY_BACKSLASH},
     {KEY_MOD_LSHIFT, KEY_RIGHTBRACE}, {KEY_MOD_LSHIFT, KEY_GRAVE},
+	{0,0}, //Layer toggle
+	{0, KEY_LEFT},{0, KEY_UP},{0, KEY_RIGHT},{0, KEY_DOWN},
+	{0, KEY_SYSRQ},{0, KEY_HOME},{0, KEY_PAGEUP},{0, KEY_PAGEDOWN},{0, KEY_END},
+	{0, KEY_MEDIA_PLAYPAUSE},{0, KEY_MEDIA_PLAYPAUSE},{0, KEY_MEDIA_PREVIOUSSONG},{0, KEY_MEDIA_NEXTSONG},{0, KEY_MEDIA_VOLUMEUP},{0, KEY_MEDIA_VOLUMEDOWN},
+	{KEY_MOD_LCTRL, KEY_S},{KEY_MOD_LCTRL, KEY_P},{KEY_MOD_LCTRL, KEY_F},{KEY_MOD_LCTRL, KEY_Z},{KEY_MOD_LCTRL, KEY_Y},
+	{0, KEY_CUT},{0, KEY_COPY},{0, KEY_PASTE},{KEY_MOD_LCTRL, KEY_N},
+	{0, KEY_A},{0, KEY_B},{0, KEY_C},{0, KEY_D},{0, KEY_E},{0, KEY_F},{0, KEY_G},{0, KEY_H},{0, KEY_I},{0, KEY_J},{0, KEY_K},{0, KEY_L}
 };
 
-uint32_t time_since_last_send[128] = {};
+uint32_t time_since_last_send[165] = {};
 uint8_t most_recent_char_sent = 0x00;
 uint32_t num_times_recent_char_sent = 0;
 
@@ -69,11 +77,6 @@ void hid_send_char(uint8_t c)
 		}
 	}
 
-    if (c > 127) return;
-    if (c < 32) return;
-
-    c -= 32; // offset ignore the first 32 symbols in ascii table
-
     keyBoardHIDsub.MODIFIER = ascii_to_hid_key_map[c][0];
     keyBoardHIDsub.KEYCODE1 = ascii_to_hid_key_map[c][1];
     USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
@@ -84,7 +87,6 @@ void hid_send_char(uint8_t c)
 	USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
 	HAL_Delay(25);
 
-	c += 32;
 	time_since_last_send[c] = HAL_GetTick();
 	if (most_recent_char_sent != c) {
 		most_recent_char_sent = c;
