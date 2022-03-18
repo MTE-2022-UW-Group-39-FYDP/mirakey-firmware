@@ -2,7 +2,7 @@
 #include "../glyphs.h"
 
 int main() {
-    unsigned char* bitmap = mapCharToBitmap(146);
+    unsigned char* bitmap = mapCharToBitmap(166);
     render40x40(bitmap);
 //    printf("\n");
 //    bitmap = mapCharToBitmap('0');
