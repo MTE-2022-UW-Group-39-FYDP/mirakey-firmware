@@ -6,6 +6,7 @@
  * -----------------------------------------------------------------------------------------*/
 
 #include "stm32f4xx_hal.h"
+#include "stm32f412rx.h"
 
 #ifndef MKS_h
 #define MKS_h
@@ -13,16 +14,16 @@
  * Mirakey Serial I/O Configuration
  * -----------------------------------------------------------------------------------------*/
 //#define MKS_SPI_PORT    hspi2		// we're using a variable for this
-#define MKS_RESET_PORT	GPIOA
-#define MKS_RESET_PIN	GPIO_PIN_9
-#define MKS_DC_PORT		GPIOA
-#define MKS_DC_PIN		GPIO_PIN_8
+#define MKS_RESET_PORT	GPIOB
+#define MKS_RESET_PIN	GPIO_PIN_7
+#define MKS_DC_PORT		GPIOB
+#define MKS_DC_PIN		GPIO_PIN_6
 
 // Slave Select Modes: Bitbang, ClockSync
 //#define MKS_SS_BITBANG		// The slave selection is manually driven with GPIO pins.
 //#define MKS_SS_CL_SYNC	// The slave selection is enabled/disabled with MKS_SS_PIN.
 							// Requires hardware to sync data and address clock lines.
-//#define MKS_SPI           // Individual chip selects as in regular SPI.
+#define MKS_SPI           // Individual chip selects as in regular SPI.
                             // This is only recommended for macropads with few keys.
 
 #ifdef MKS_SS_BITBANG
@@ -35,31 +36,31 @@
 #define MKS_SS_PORT		GPIOA
 #define MKS_SS_PIN		GPIO_PIN_9
 #endif
-#ifdef MKS_SPI          //todo: set these to the right pins after configuring CubeMX
-#define MKS_CS0_PORT    GPIOX
-#define MKS_CS0_PIN     GPIO_PIN_X
-#define MKS_CS1_PORT    GPIOX
-#define MKS_CS1_PIN     GPIO_PIN_X
-#define MKS_CS2_PORT    GPIOX
-#define MKS_CS2_PIN     GPIO_PIN_X
-#define MKS_CS3_PORT    GPIOX
-#define MKS_CS3_PIN     GPIO_PIN_X
-#define MKS_CS4_PORT    GPIOX
-#define MKS_CS4_PIN     GPIO_PIN_X
-#define MKS_CS5_PORT    GPIOX
-#define MKS_CS5_PIN     GPIO_PIN_X
-#define MKS_CS6_PORT    GPIOX
-#define MKS_CS6_PIN     GPIO_PIN_X
-#define MKS_CS7_PORT    GPIOX
-#define MKS_CS7_PIN     GPIO_PIN_X
-#define MKS_CS8_PORT    GPIOX
-#define MKS_CS8_PIN     GPIO_PIN_X
-#define MKS_CS9_PORT    GPIOX
-#define MKS_CS9_PIN     GPIO_PIN_X
-#define MKS_CS10_PORT   GPIOX
-#define MKS_CS10_PIN    GPIO_PIN_X
-#define MKS_CS11_PORT   GPIOX
-#define MKS_CS11_PIN    GPIO_PIN_X
+#ifdef MKS_SPI
+#define MKS_CS0_PORT    GPIOB
+#define MKS_CS0_PIN     GPIO_PIN_12
+#define MKS_CS1_PORT    GPIOC
+#define MKS_CS1_PIN     GPIO_PIN_10
+#define MKS_CS2_PORT    GPIOC
+#define MKS_CS2_PIN     GPIO_PIN_10
+#define MKS_CS3_PORT    GPIOC
+#define MKS_CS3_PIN     GPIO_PIN_10
+#define MKS_CS4_PORT    GPIOC
+#define MKS_CS4_PIN     GPIO_PIN_10
+#define MKS_CS5_PORT    GPIOC
+#define MKS_CS5_PIN     GPIO_PIN_10
+#define MKS_CS6_PORT    GPIOC
+#define MKS_CS6_PIN     GPIO_PIN_10
+#define MKS_CS7_PORT    GPIOC
+#define MKS_CS7_PIN     GPIO_PIN_10
+#define MKS_CS8_PORT    GPIOC
+#define MKS_CS8_PIN     GPIO_PIN_10
+#define MKS_CS9_PORT    GPIOC
+#define MKS_CS9_PIN     GPIO_PIN_10
+#define MKS_CS10_PORT   GPIOC
+#define MKS_CS10_PIN    GPIO_PIN_10
+#define MKS_CS11_PORT   GPIOC
+#define MKS_CS11_PIN    GPIO_PIN_10
 #endif
 
 

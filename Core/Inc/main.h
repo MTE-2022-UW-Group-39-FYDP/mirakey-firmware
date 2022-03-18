@@ -83,6 +83,12 @@ void Error_Handler(void);
 #define K5_GPIO_Port GPIOC
 #define K1_Pin GPIO_PIN_0
 #define K1_GPIO_Port GPIOB
+#define MKS_CS0_Pin GPIO_PIN_12
+#define MKS_CS0_GPIO_Port GPIOB
+#define MKS_DC_Pin GPIO_PIN_6
+#define MKS_DC_GPIO_Port GPIOB
+#define MKS_RES_Pin GPIO_PIN_7
+#define MKS_RES_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

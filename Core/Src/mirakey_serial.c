@@ -1,4 +1,4 @@
-#include "mirakey-serial.h"
+#include "mirakey_serial.h"
 
 /*-------------------------------------------------------------------------------------------------
 Helper Method Prototypes
@@ -14,7 +14,7 @@ Mirakey Serial Interface
 
 SPI_HandleTypeDef * MKS_SPI_PORT;
 #ifdef MKS_SPI
-GPIO_PORT_Typedef mks_cs_ports[] = {
+GPIO_TypeDef* mks_cs_ports[] = {
     MKS_CS0_PORT,
     MKS_CS1_PORT,
     MKS_CS2_PORT,
@@ -26,9 +26,9 @@ GPIO_PORT_Typedef mks_cs_ports[] = {
     MKS_CS8_PORT,
     MKS_CS9_PORT,
     MKS_CS10_PORT,
-    MKS_CS11_PORT,
-}
-GPIO_PIN_Typedef mks_cs_pins[] = {
+    MKS_CS11_PORT
+};
+uint16_t mks_cs_pins[] = {
     MKS_CS0_PIN,
     MKS_CS1_PIN,
     MKS_CS2_PIN,
@@ -40,8 +40,8 @@ GPIO_PIN_Typedef mks_cs_pins[] = {
     MKS_CS8_PIN,
     MKS_CS9_PIN,
     MKS_CS10_PIN,
-    MKS_CS11_PIN,
-}
+    MKS_CS11_PIN
+};
 uint8_t previous_slave;
 #endif
 
@@ -134,7 +134,7 @@ void MKS_ActivateDisplay(uint8_t SlaveAddress) {
 void MKS_Select(uint8_t SlaveAddress) {
 
 	//temp test code for testing
-	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_10,GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(GPIOA,GPIO_PIN_10,GPIO_PIN_RESET);
 
 #ifdef MKS_SS_BITBANG
 	//todo: test the timing, might need small delays
