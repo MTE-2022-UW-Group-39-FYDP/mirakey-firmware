@@ -47,6 +47,8 @@
 #define NEXT		141
 #define VOLUP		142
 #define VOLDOWN		143
+#define BRU			166
+#define BRD			165
 // shortcut layer
 #define CUT			149
 #define COPY		150
@@ -63,9 +65,9 @@
 
 // 11 characters per layer, since K12 is the dedicated layer toggle key
 #define LAYER_LAYOUTS {{'A','B','C','D','E','F','G','H','I','J','K'}, \
-	{'7','8','9','0','4','5','6',ENTER,'1','2','3'}, \
-	{ESC,' ',PRINTSCREEN,HOME,PGUP,UP,PGDOWN,END,LEFT,DOWN,RIGHT}, \
-	{PREV,PLAY,PAUSE,NEXT,VOLUP,' ',' ',' ',VOLDOWN,' ',' '}, \
+	{'0','1','2','3','4','5','6','7','8','9',ENTER}, \
+	{PGUP,UP,PGDOWN,END,LEFT,DOWN,RIGHT,PRINTSCREEN,ESC,HOME,PRINTSCREEN}, \
+	{VOLDOWN,PAUSE,VOLUP,BRU,PREV,PLAY,NEXT,BRD,' ',' ',' '}, \
 	{CUT,COPY,PASTE,PRINT,UNDO,REDO,SAVE,FIND,NEW,SPACE,BACKSPACE}, \
 	{153,154,155,156,157,158,159,160,161,162,163}};
 
